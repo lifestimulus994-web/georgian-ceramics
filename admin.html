@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ადმინ პანელი · Georgian Ceramics</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="images/logo.png">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+<!-- LOGIN -->
+<div class="admin-login" id="loginScreen">
+  <form class="admin-login-card" id="loginForm">
+    <img src="images/logo.png" alt="" class="admin-login-logo">
+    <h1>ადმინ პანელი</h1>
+    <p>შეიყვანეთ ელფოსტა და პაროლი</p>
+    <input type="email" id="loginEmail" placeholder="ელფოსტა" required autofocus>
+    <input type="password" id="loginPassword" placeholder="პაროლი" required>
+    <button type="submit" class="btn btn-primary">შესვლა</button>
+    <p class="admin-error" id="loginError"></p>
+  </form>
+</div>
+
+<!-- APP -->
+<div class="admin-app" id="adminApp" hidden>
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <a href="index.html" class="admin-brand">
+        <img src="images/logo.png" alt="">
+        <span>ქართული კერამიკა · ადმინი</span>
+      </a>
+      <button class="btn btn-ghost btn-sm" id="logoutBtn">გასვლა</button>
+    </div>
+  </header>
+
+  <nav class="admin-tabs">
+    <button class="admin-tab is-active" data-tab="products">პროდუქტები</button>
+    <button class="admin-tab" data-tab="categories">კატეგორიები</button>
+    <button class="admin-tab" data-tab="subcategories">ქვეკატეგორიები</button>
+  </nav>
+
+  <main class="admin-main">
+
+    <!-- PRODUCTS TAB -->
+    <section class="admin-panel is-active" id="tab-products">
+      <div class="admin-card">
+        <h2 id="productFormTitle">ახალი პროდუქტის დამატება</h2>
+        <form id="productForm" class="admin-form">
+          <label>სახელი
+            <input type="text" id="pName" required>
+          </label>
+          <label>ფასი (₾)
+            <input type="number" id="pPrice" min="0" step="0.01" required>
+          </label>
+          <label>კატეგორია
+            <select id="pCategory" required></select>
+          </label>
+          <div class="admin-field">
+            <span class="admin-field-label">ქვეკატეგორია (შეგიძლიათ რამდენიმეც)</span>
+            <div class="admin-checkbox-group" id="pSubcategories"><em>აირჩიეთ კატეგორია</em></div>
+          </div>
+          <div class="admin-field">
+            <span class="admin-field-label">ფოტოები (შეგიძლიათ რამდენიმეც)</span>
+            <input type="file" id="pImages" accept="image/*" multiple>
+            <div class="admin-image-preview" id="pExistingImages"></div>
+          </div>
+          <div class="admin-form-actions">
+            <button type="submit" class="btn btn-primary" id="pSubmitBtn">დამატება</button>
+            <button type="button" class="btn btn-ghost" id="pCancelBtn" hidden>გაუქმება</button>
+          </div>
+          <p class="admin-error" id="productError"></p>
+        </form>
+      </div>
+
+      <div class="admin-card">
+        <h2>პროდუქტების სია</h2>
+        <div class="admin-product-list" id="productList"></div>
+      </div>
+    </section>
+
+    <!-- CATEGORIES TAB -->
+    <section class="admin-panel" id="tab-categories">
+      <div class="admin-card">
+        <h2>ახალი კატეგორია</h2>
+        <form id="categoryForm" class="admin-form admin-form-inline">
+          <input type="text" id="cName" placeholder="მაგ. ჯამები" required>
+          <button type="submit" class="btn btn-primary">დამატება</button>
+        </form>
+        <p class="admin-error" id="categoryError"></p>
+      </div>
+      <div class="admin-card">
+        <h2>არსებული კატეგორიები</h2>
+        <div class="admin-list" id="categoryList"></div>
+      </div>
+    </section>
+
+    <!-- SUBCATEGORIES TAB -->
+    <section class="admin-panel" id="tab-subcategories">
+      <div class="admin-card">
+        <h2>ახალი ქვეკატეგორია</h2>
+        <form id="subcategoryForm" class="admin-form admin-form-inline">
+          <select id="sCategory" required></select>
+          <input type="text" id="sName" placeholder="მაგ. თეთრი" required>
+          <button type="submit" class="btn btn-primary">დამატება</button>
+        </form>
+        <p class="admin-error" id="subcategoryError"></p>
+      </div>
+      <div class="admin-card">
+        <h2>არსებული ქვეკატეგორიები</h2>
+        <div class="admin-list" id="subcategoryList"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

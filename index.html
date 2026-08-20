@@ -107,15 +107,8 @@
         <p>გაფილტრეთ ტიპის მიხედვით, დაამატეთ კალათაში და შეუკვეთეთ ერთიანად ვაცაპით — თითოეული ნივთი ხელნაკეთია.</p>
       </div>
 
-      <div class="filters" id="filters">
-        <button class="filter-btn is-active" data-filter="all">ყველა</button>
-        <button class="filter-btn" data-filter="bowls">ჯამები</button>
-        <button class="filter-btn" data-filter="jugs">დოქები</button>
-        <button class="filter-btn" data-filter="mugs">ჭიქა-ფინჯნები</button>
-        <button class="filter-btn" data-filter="plates">თეფშები</button>
-        <button class="filter-btn" data-filter="vases">ვაზები</button>
-        <button class="filter-btn" data-filter="gifts">სასაჩუქრე ნაკრებები</button>
-      </div>
+      <div class="filters" id="filters"></div>
+      <div class="filters filters-sub" id="subFilters"></div>
 
       <div class="product-grid" id="productGrid"></div>
     </div>
@@ -235,6 +228,8 @@
   </div>
 </aside>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

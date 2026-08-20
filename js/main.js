@@ -1,46 +1,11 @@
 const WHATSAPP_NUMBER = "995593613363";
 
-const PRODUCTS = [
-  // ჯამები
-  { id: 1, name: "თიხის ჯამი „მთა“", category: "bowls", categoryLabel: "ჯამი", price: 45, img: "2611817" },
-  { id: 2, name: "მინანქრიანი ჯამი „მწვანე ველი“", category: "bowls", categoryLabel: "ჯამი", price: 52, img: "95218" },
-  { id: 3, name: "სუფრის ჯამი „ბუნებრივი“", category: "bowls", categoryLabel: "ჯამი", price: 38, img: "57042" },
-  { id: 4, name: "ხელნაკეთი ჯამი „ტკბილეული“", category: "bowls", categoryLabel: "ჯამი", price: 42, img: "4499229" },
+let CATEGORIES = [];
+let SUBCATEGORIES = [];
+let PRODUCTS = [];
 
-  // დოქები
-  { id: 5, name: "თიხის დოქი „ქართლი“", category: "jugs", categoryLabel: "დოქი", price: 68, img: "11975310" },
-  { id: 6, name: "დოქი „მინიმალი“", category: "jugs", categoryLabel: "დოქი", price: 74, img: "3733769" },
-  { id: 7, name: "ხელნაძერწი დოქი „ხალხური“", category: "jugs", categoryLabel: "დოქი", price: 82, img: "8066099" },
-
-  // ჭიქა-ფინჯნები
-  { id: 8, name: "ფინჯანი „კახეთი“", category: "mugs", categoryLabel: "ფინჯანი", price: 28, img: "1405761" },
-  { id: 9, name: "შავი ფინჯანი „ღამე“", category: "mugs", categoryLabel: "ფინჯანი", price: 26, img: "730286" },
-  { id: 10, name: "თეთრი ჭიქა „სუფთა ხაზი“", category: "mugs", categoryLabel: "ჭიქა", price: 24, img: "1693652" },
-  { id: 11, name: "ფინჯანი „წითელი მიწა“", category: "mugs", categoryLabel: "ფინჯანი", price: 27, img: "3784328" },
-  { id: 12, name: "ფინჯანი თეფშით „ბრუნჩი“", category: "mugs", categoryLabel: "ნაკრები", price: 46, img: "685527" },
-
-  // თეფშები
-  { id: 13, name: "თეფშების ნაკრები „საოჯახო“", category: "plates", categoryLabel: "ნაკრები", price: 96, img: "13385627" },
-  { id: 14, name: "მრგვალი თეთრი თეფშები", category: "plates", categoryLabel: "თეფშები", price: 58, img: "11065504" },
-  { id: 15, name: "მოხატული თეფში „ვაზა-ყვავილი“", category: "plates", categoryLabel: "თეფში", price: 34, img: "11889255" },
-  { id: 16, name: "სამზარეულოს ნაკრები „თეთრი“", category: "plates", categoryLabel: "ნაკრები", price: 104, img: "8251822" },
-
-  // ვაზები
-  { id: 17, name: "ფერადი ვაზების წყვილი", category: "vases", categoryLabel: "ვაზა", price: 76, img: "4611612" },
-  { id: 18, name: "ხელნაკეთი ვაზა „მიწა“", category: "vases", categoryLabel: "ვაზა", price: 64, img: "10011988" },
-  { id: 19, name: "თეთრი ვაზა „საოჯახო მაგიდა“", category: "vases", categoryLabel: "ვაზა", price: 58, img: "271696" },
-  { id: 20, name: "ვაზა „გამხმარი ყვავილები“", category: "vases", categoryLabel: "ვაზა", price: 49, img: "11372166" },
-  { id: 21, name: "თეთრი ვაზა „გაზაფხული“", category: "vases", categoryLabel: "ვაზა", price: 55, img: "7946789" },
-
-  // სასაჩუქრე ნაკრებები
-  { id: 22, name: "სასაჩუქრე ნაკრები „კახური“", category: "gifts", categoryLabel: "საჩუქარი", price: 120, img: "18273370" },
-  { id: 23, name: "სასაჩუქრე ნაკრები „თბილისური“", category: "gifts", categoryLabel: "საჩუქარი", price: 135, img: "4065905" },
-  { id: 24, name: "სასაჩუქრე ყუთი „ხელნაკეთი“", category: "gifts", categoryLabel: "საჩუქარი", price: 150, img: "6608165" },
-];
-
-function pexelsUrl(id, w = 600) {
-  return `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${w}`;
-}
+let activeCategory = "all";
+let activeSubcategory = "all";
 
 function waLink(text) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
@@ -50,18 +15,123 @@ function productById(id) {
   return PRODUCTS.find(p => p.id === id);
 }
 
-function renderProducts(filter = "all") {
+// ============ LOAD CATALOG FROM SUPABASE ============
+async function loadCatalog() {
   const grid = document.getElementById("productGrid");
-  const items = filter === "all" ? PRODUCTS : PRODUCTS.filter(p => p.category === filter);
 
-  grid.innerHTML = items.map(p => `
-    <article class="product-card reveal" data-category="${p.category}">
+  const [catRes, subRes, prodRes, imgRes, linkRes] = await Promise.all([
+    sb.from("categories").select("id,name,sort_order").order("sort_order"),
+    sb.from("subcategories").select("id,category_id,name"),
+    sb.from("products").select("id,name,price,category_id,sort_order").order("sort_order"),
+    sb.from("product_images").select("id,product_id,url,sort_order").order("sort_order"),
+    sb.from("product_subcategories").select("product_id,subcategory_id"),
+  ]);
+
+  if (catRes.error || prodRes.error) {
+    grid.innerHTML = `<p class="catalog-empty">კატალოგის ჩატვირთვა ვერ მოხერხდა. სცადეთ მოგვიანებით.</p>`;
+    return;
+  }
+
+  CATEGORIES = catRes.data || [];
+  SUBCATEGORIES = subRes.data || [];
+
+  const imagesByProduct = {};
+  (imgRes.data || []).forEach(img => {
+    (imagesByProduct[img.product_id] ||= []).push(img.url);
+  });
+
+  const subsByProduct = {};
+  (linkRes.data || []).forEach(l => {
+    (subsByProduct[l.product_id] ||= []).push(l.subcategory_id);
+  });
+
+  PRODUCTS = (prodRes.data || []).map(p => ({
+    ...p,
+    images: imagesByProduct[p.id] || [],
+    subcategoryIds: subsByProduct[p.id] || [],
+  }));
+
+  renderFilters();
+  renderProducts();
+}
+
+// ============ FILTERS ============
+function renderFilters() {
+  const filters = document.getElementById("filters");
+  const buttons = [`<button class="filter-btn is-active" data-filter="all">ყველა</button>`]
+    .concat(CATEGORIES.map(c => `<button class="filter-btn" data-filter="${c.id}">${c.name}</button>`));
+  filters.innerHTML = buttons.join("");
+  renderSubFilters();
+}
+
+function renderSubFilters() {
+  const subFilters = document.getElementById("subFilters");
+  activeSubcategory = "all";
+  if (activeCategory === "all") {
+    subFilters.innerHTML = "";
+    return;
+  }
+  const subs = SUBCATEGORIES.filter(s => s.category_id === activeCategory);
+  if (!subs.length) {
+    subFilters.innerHTML = "";
+    return;
+  }
+  const buttons = [`<button class="filter-btn is-active" data-subfilter="all">ყველა</button>`]
+    .concat(subs.map(s => `<button class="filter-btn" data-subfilter="${s.id}">${s.name}</button>`));
+  subFilters.innerHTML = buttons.join("");
+}
+
+function setupFilters() {
+  document.getElementById("filters").addEventListener("click", (e) => {
+    const btn = e.target.closest(".filter-btn");
+    if (!btn) return;
+    document.querySelectorAll("#filters .filter-btn").forEach(b => b.classList.remove("is-active"));
+    btn.classList.add("is-active");
+    activeCategory = btn.dataset.filter;
+    renderSubFilters();
+    renderProducts();
+  });
+
+  document.getElementById("subFilters").addEventListener("click", (e) => {
+    const btn = e.target.closest(".filter-btn");
+    if (!btn) return;
+    document.querySelectorAll("#subFilters .filter-btn").forEach(b => b.classList.remove("is-active"));
+    btn.classList.add("is-active");
+    activeSubcategory = btn.dataset.subfilter;
+    renderProducts();
+  });
+}
+
+// ============ PRODUCT GRID ============
+function renderProducts() {
+  const grid = document.getElementById("productGrid");
+
+  let items = activeCategory === "all" ? PRODUCTS : PRODUCTS.filter(p => p.category_id === activeCategory);
+  if (activeSubcategory !== "all") {
+    items = items.filter(p => p.subcategoryIds.includes(activeSubcategory));
+  }
+
+  if (!items.length) {
+    grid.innerHTML = `<p class="catalog-empty">ამ კატეგორიაში ჯერ პროდუქტი არ არის დამატებული.</p>`;
+    return;
+  }
+
+  grid.innerHTML = items.map(p => {
+    const img = p.images[0];
+    const category = CATEGORIES.find(c => c.id === p.category_id);
+    const tags = p.subcategoryIds
+      .map(id => SUBCATEGORIES.find(s => s.id === id)?.name)
+      .filter(Boolean);
+
+    return `
+    <article class="product-card reveal" data-category="${p.category_id}">
       <div class="product-media">
-        <img src="${pexelsUrl(p.img, 600)}" alt="${p.name}" loading="lazy">
-        <span class="product-tag">${p.categoryLabel}</span>
+        ${img ? `<img src="${img}" alt="${p.name}" loading="lazy">` : `<div class="product-media-placeholder"></div>`}
+        ${category ? `<span class="product-tag">${category.name}</span>` : ""}
       </div>
       <div class="product-body">
         <h3>${p.name}</h3>
+        ${tags.length ? `<div class="product-tags">${tags.map(t => `<span class="product-subtag">${t}</span>`).join("")}</div>` : ""}
         <div class="product-footer">
           <span class="product-price">${p.price} ₾</span>
           <button class="btn btn-order" data-add-id="${p.id}">
@@ -71,7 +141,8 @@ function renderProducts(filter = "all") {
         </div>
       </div>
     </article>
-  `).join("");
+  `;
+  }).join("");
 
   observeReveal();
 }
@@ -163,9 +234,10 @@ function renderCart() {
   itemsEl.innerHTML = cart.map(item => {
     const p = productById(item.id);
     if (!p) return "";
+    const img = p.images[0];
     return `
       <div class="cart-item" data-id="${p.id}">
-        <div class="cart-item-media"><img src="${pexelsUrl(p.img, 200)}" alt="${p.name}"></div>
+        <div class="cart-item-media">${img ? `<img src="${img}" alt="${p.name}">` : ""}</div>
         <div class="cart-item-body">
           <h4>${p.name}</h4>
           <span class="cart-item-price">${p.price * item.qty} ₾</span>
@@ -211,7 +283,7 @@ function setupCart() {
   document.getElementById("productGrid").addEventListener("click", (e) => {
     const addBtn = e.target.closest("[data-add-id]");
     if (!addBtn) return;
-    addToCart(Number(addBtn.dataset.addId));
+    addToCart(addBtn.dataset.addId);
     addBtn.classList.add("is-added");
     const label = addBtn.querySelector(".btn-order-label");
     const prevLabel = label ? label.textContent : "";
@@ -226,27 +298,16 @@ function setupCart() {
   document.getElementById("cartItems").addEventListener("click", (e) => {
     const qtyBtn = e.target.closest("[data-qty-id]");
     if (qtyBtn) {
-      changeQty(Number(qtyBtn.dataset.qtyId), Number(qtyBtn.dataset.delta));
+      changeQty(qtyBtn.dataset.qtyId, Number(qtyBtn.dataset.delta));
       return;
     }
     const removeBtn = e.target.closest("[data-remove-id]");
     if (removeBtn) {
-      removeFromCart(Number(removeBtn.dataset.removeId));
+      removeFromCart(removeBtn.dataset.removeId);
     }
   });
 
   renderCart();
-}
-
-function setupFilters() {
-  const filters = document.getElementById("filters");
-  filters.addEventListener("click", (e) => {
-    const btn = e.target.closest(".filter-btn");
-    if (!btn) return;
-    filters.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("is-active"));
-    btn.classList.add("is-active");
-    renderProducts(btn.dataset.filter);
-  });
 }
 
 let revealObserver;
@@ -306,7 +367,7 @@ function setupBurger() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  renderProducts("all");
+  loadCatalog();
   setupFilters();
   setupCart();
   setupHeaderScroll();
