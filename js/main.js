@@ -8,6 +8,10 @@ let activeCategory = "all";
 let activeSubcategory = "all";
 let selectedVariant = {}; // productId -> subcategoryId chosen by the customer
 
+let carouselTimers = new Map(); // .product-media element -> setInterval id
+let carouselObserver = null;
+const CAROUSEL_INTERVAL_MS = 4000;
+
 function waLink(text) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 }
@@ -104,8 +108,25 @@ function setupFilters() {
 }
 
 // ============ PRODUCT GRID ============
+function renderMedia(p) {
+  if (p.images.length > 1) {
+    const slides = p.images.map((url, i) =>
+      `<img src="${url}" alt="${p.name}" loading="lazy" class="carousel-slide${i === 0 ? " is-active" : ""}">`
+    ).join("");
+    const dots = p.images.map((_, i) =>
+      `<button type="button" class="carousel-dot${i === 0 ? " is-active" : ""}" data-dot-index="${i}" aria-label="ფოტო ${i + 1}"></button>`
+    ).join("");
+    return `${slides}<div class="carousel-dots">${dots}</div>`;
+  }
+  if (p.images.length === 1) {
+    return `<img src="${p.images[0]}" alt="${p.name}" loading="lazy">`;
+  }
+  return `<div class="product-media-placeholder"></div>`;
+}
+
 function renderProducts() {
   const grid = document.getElementById("productGrid");
+  stopAllCarousels();
 
   let items = activeCategory === "all" ? PRODUCTS : PRODUCTS.filter(p => p.category_id === activeCategory);
   if (activeSubcategory !== "all") {
@@ -118,7 +139,6 @@ function renderProducts() {
   }
 
   grid.innerHTML = items.map(p => {
-    const img = p.images[0];
     const category = CATEGORIES.find(c => c.id === p.category_id);
     const variants = p.subcategoryIds
       .map(id => SUBCATEGORIES.find(s => s.id === id))
@@ -128,10 +148,12 @@ function renderProducts() {
       selectedVariant[p.id] = variants[0].id;
     }
 
+    const isMulti = p.images.length > 1;
+
     return `
     <article class="product-card reveal" data-category="${p.category_id}">
-      <div class="product-media">
-        ${img ? `<img src="${img}" alt="${p.name}" loading="lazy">` : `<div class="product-media-placeholder"></div>`}
+      <div class="product-media"${isMulti ? ` data-multi data-index="0"` : ""}>
+        ${renderMedia(p)}
         ${category ? `<span class="product-tag">${category.name}</span>` : ""}
       </div>
       <div class="product-body">
@@ -150,7 +172,73 @@ function renderProducts() {
   }).join("");
 
   observeReveal();
+  initCarousels();
 }
+
+// ============ CAROUSELS (auto-rotate product photos every 4s) ============
+function advanceCarousel(media, toIndex = null) {
+  const slides = media.querySelectorAll(".carousel-slide");
+  const dots = media.querySelectorAll(".carousel-dot");
+  if (!slides.length) return;
+  const current = Number(media.dataset.index) || 0;
+  const next = toIndex !== null ? toIndex : (current + 1) % slides.length;
+  slides[current]?.classList.remove("is-active");
+  slides[next]?.classList.add("is-active");
+  dots[current]?.classList.remove("is-active");
+  dots[next]?.classList.add("is-active");
+  media.dataset.index = next;
+}
+
+function pauseCarousel(media) {
+  const id = carouselTimers.get(media);
+  if (id) clearInterval(id);
+  carouselTimers.delete(media);
+}
+
+function resumeCarousel(media) {
+  if (carouselTimers.has(media)) return;
+  const id = setInterval(() => advanceCarousel(media), CAROUSEL_INTERVAL_MS);
+  carouselTimers.set(media, id);
+}
+
+function stopAllCarousels() {
+  carouselTimers.forEach(id => clearInterval(id));
+  carouselTimers.clear();
+  if (carouselObserver) carouselObserver.disconnect();
+}
+
+function isInViewport(el) {
+  const rect = el.getBoundingClientRect();
+  return rect.top < window.innerHeight && rect.bottom > 0;
+}
+
+function initCarousels() {
+  carouselObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !document.hidden) resumeCarousel(entry.target);
+      else pauseCarousel(entry.target);
+    });
+  }, { threshold: 0.2 });
+
+  document.querySelectorAll(".product-media[data-multi]").forEach(media => {
+    carouselObserver.observe(media);
+    media.addEventListener("mouseenter", () => pauseCarousel(media));
+    media.addEventListener("mouseleave", () => {
+      if (isInViewport(media) && !document.hidden) resumeCarousel(media);
+    });
+  });
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    carouselTimers.forEach(id => clearInterval(id));
+    carouselTimers.clear();
+  } else {
+    document.querySelectorAll(".product-media[data-multi]").forEach(media => {
+      if (isInViewport(media)) resumeCarousel(media);
+    });
+  }
+});
 
 // ============ CART ============
 const CART_KEY = "gc_cart";
@@ -292,6 +380,15 @@ function setupCart() {
   });
 
   document.getElementById("productGrid").addEventListener("click", (e) => {
+    const dotBtn = e.target.closest("[data-dot-index]");
+    if (dotBtn) {
+      const media = dotBtn.closest(".product-media");
+      advanceCarousel(media, Number(dotBtn.dataset.dotIndex));
+      pauseCarousel(media);
+      resumeCarousel(media);
+      return;
+    }
+
     const variantBtn = e.target.closest("[data-variant-id]");
     if (variantBtn) {
       const group = variantBtn.closest(".product-variants");
