@@ -6,6 +6,7 @@ let PRODUCTS = [];
 
 let activeCategory = "all";
 let activeSubcategory = "all";
+let selectedVariant = {}; // productId -> subcategoryId chosen by the customer
 
 function waLink(text) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
@@ -119,9 +120,13 @@ function renderProducts() {
   grid.innerHTML = items.map(p => {
     const img = p.images[0];
     const category = CATEGORIES.find(c => c.id === p.category_id);
-    const tags = p.subcategoryIds
-      .map(id => SUBCATEGORIES.find(s => s.id === id)?.name)
+    const variants = p.subcategoryIds
+      .map(id => SUBCATEGORIES.find(s => s.id === id))
       .filter(Boolean);
+
+    if (variants.length && !variants.some(v => v.id === selectedVariant[p.id])) {
+      selectedVariant[p.id] = variants[0].id;
+    }
 
     return `
     <article class="product-card reveal" data-category="${p.category_id}">
@@ -131,7 +136,7 @@ function renderProducts() {
       </div>
       <div class="product-body">
         <h3>${p.name}</h3>
-        ${tags.length ? `<div class="product-tags">${tags.map(t => `<span class="product-subtag">${t}</span>`).join("")}</div>` : ""}
+        ${variants.length ? `<div class="product-variants" data-product-id="${p.id}">${variants.map(v => `<button type="button" class="product-subtag${v.id === selectedVariant[p.id] ? " is-selected" : ""}" data-variant-id="${v.id}">${v.name}</button>`).join("")}</div>` : ""}
         <div class="product-footer">
           <span class="product-price">${p.price} ₾</span>
           <button class="btn btn-order" data-add-id="${p.id}">
@@ -164,30 +169,34 @@ function saveCart() {
   localStorage.setItem(CART_KEY, JSON.stringify(cart));
 }
 
-function addToCart(id) {
-  const existing = cart.find(item => item.id === id);
+function subcategoryName(id) {
+  return SUBCATEGORIES.find(s => s.id === id)?.name || "";
+}
+
+function addToCart(id, subId = "") {
+  const existing = cart.find(item => item.id === id && item.subId === subId);
   if (existing) {
     existing.qty += 1;
   } else {
-    cart.push({ id, qty: 1 });
+    cart.push({ id, subId, qty: 1 });
   }
   saveCart();
   renderCart();
 }
 
-function changeQty(id, delta) {
-  const item = cart.find(i => i.id === id);
+function changeQty(id, subId, delta) {
+  const item = cart.find(i => i.id === id && i.subId === subId);
   if (!item) return;
   item.qty += delta;
   if (item.qty <= 0) {
-    cart = cart.filter(i => i.id !== id);
+    cart = cart.filter(i => i !== item);
   }
   saveCart();
   renderCart();
 }
 
-function removeFromCart(id) {
-  cart = cart.filter(i => i.id !== id);
+function removeFromCart(id, subId) {
+  cart = cart.filter(i => !(i.id === id && i.subId === subId));
   saveCart();
   renderCart();
 }
@@ -213,7 +222,8 @@ function buildCartMessage() {
   const lines = cart.map(item => {
     const p = productById(item.id);
     if (!p) return "";
-    return `• ${p.name} x${item.qty} — ${p.price * item.qty} ₾`;
+    const variant = item.subId ? ` (${subcategoryName(item.subId)})` : "";
+    return `• ${p.name}${variant} x${item.qty} — ${p.price * item.qty} ₾`;
   }).filter(Boolean);
   const total = cartTotal();
   return `გამარჯობა, მინდა შემდეგი პროდუქტების შეკვეთა:\n${lines.join("\n")}\n\nჯამი: ${total} ₾`;
@@ -235,19 +245,20 @@ function renderCart() {
     const p = productById(item.id);
     if (!p) return "";
     const img = p.images[0];
+    const variantName = item.subId ? subcategoryName(item.subId) : "";
     return `
       <div class="cart-item" data-id="${p.id}">
         <div class="cart-item-media">${img ? `<img src="${img}" alt="${p.name}">` : ""}</div>
         <div class="cart-item-body">
-          <h4>${p.name}</h4>
+          <h4>${p.name}${variantName ? ` <span class="cart-item-variant">— ${variantName}</span>` : ""}</h4>
           <span class="cart-item-price">${p.price * item.qty} ₾</span>
           <div class="cart-item-qty">
-            <button class="cart-qty-btn" data-qty-id="${p.id}" data-delta="-1" aria-label="შემცირება">−</button>
+            <button class="cart-qty-btn" data-qty-id="${p.id}" data-qty-sub="${item.subId}" data-delta="-1" aria-label="შემცირება">−</button>
             <span class="cart-qty-val">${item.qty}</span>
-            <button class="cart-qty-btn" data-qty-id="${p.id}" data-delta="1" aria-label="გაზრდა">+</button>
+            <button class="cart-qty-btn" data-qty-id="${p.id}" data-qty-sub="${item.subId}" data-delta="1" aria-label="გაზრდა">+</button>
           </div>
         </div>
-        <button class="cart-item-remove" data-remove-id="${p.id}" aria-label="წაშლა">✕</button>
+        <button class="cart-item-remove" data-remove-id="${p.id}" data-remove-sub="${item.subId}" aria-label="წაშლა">✕</button>
       </div>
     `;
   }).join("");
@@ -281,9 +292,19 @@ function setupCart() {
   });
 
   document.getElementById("productGrid").addEventListener("click", (e) => {
+    const variantBtn = e.target.closest("[data-variant-id]");
+    if (variantBtn) {
+      const group = variantBtn.closest(".product-variants");
+      selectedVariant[group.dataset.productId] = variantBtn.dataset.variantId;
+      group.querySelectorAll(".product-subtag").forEach(b => b.classList.remove("is-selected"));
+      variantBtn.classList.add("is-selected");
+      return;
+    }
+
     const addBtn = e.target.closest("[data-add-id]");
     if (!addBtn) return;
-    addToCart(addBtn.dataset.addId);
+    const productId = addBtn.dataset.addId;
+    addToCart(productId, selectedVariant[productId] || "");
     addBtn.classList.add("is-added");
     const label = addBtn.querySelector(".btn-order-label");
     const prevLabel = label ? label.textContent : "";
@@ -298,12 +319,12 @@ function setupCart() {
   document.getElementById("cartItems").addEventListener("click", (e) => {
     const qtyBtn = e.target.closest("[data-qty-id]");
     if (qtyBtn) {
-      changeQty(qtyBtn.dataset.qtyId, Number(qtyBtn.dataset.delta));
+      changeQty(qtyBtn.dataset.qtyId, qtyBtn.dataset.qtySub, Number(qtyBtn.dataset.delta));
       return;
     }
     const removeBtn = e.target.closest("[data-remove-id]");
     if (removeBtn) {
-      removeFromCart(removeBtn.dataset.removeId);
+      removeFromCart(removeBtn.dataset.removeId, removeBtn.dataset.removeSub);
     }
   });
 
