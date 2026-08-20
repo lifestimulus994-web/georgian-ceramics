@@ -273,7 +273,14 @@ async function uploadImages(files, productId) {
   }
 }
 
+let isSavingProduct = false;
+
 async function saveProduct() {
+  if (isSavingProduct) return;
+  isSavingProduct = true;
+  const submitBtn = document.getElementById("pSubmitBtn");
+  submitBtn.disabled = true;
+
   const errEl = document.getElementById("productError");
   errEl.textContent = "";
 
@@ -285,6 +292,8 @@ async function saveProduct() {
 
   if (!categoryId) {
     errEl.textContent = "ჯერ დაამატეთ კატეგორია.";
+    isSavingProduct = false;
+    submitBtn.disabled = false;
     return;
   }
 
@@ -314,6 +323,9 @@ async function saveProduct() {
     await loadAll();
   } catch (err) {
     errEl.textContent = "შეცდომა: " + err.message;
+  } finally {
+    isSavingProduct = false;
+    submitBtn.disabled = false;
   }
 }
 
@@ -352,11 +364,14 @@ function setupEvents() {
 
   document.getElementById("logoutBtn").addEventListener("click", logout);
 
-  document.getElementById("categoryForm").addEventListener("submit", (e) => {
+  document.getElementById("categoryForm").addEventListener("submit", async (e) => {
     e.preventDefault();
+    const btn = e.submitter;
     const input = document.getElementById("cName");
-    addCategory(input.value.trim());
+    btn.disabled = true;
+    await addCategory(input.value.trim());
     input.value = "";
+    btn.disabled = false;
   });
 
   document.getElementById("categoryList").addEventListener("click", (e) => {
@@ -364,13 +379,16 @@ function setupEvents() {
     if (btn) deleteCategory(btn.dataset.deleteCategory);
   });
 
-  document.getElementById("subcategoryForm").addEventListener("submit", (e) => {
+  document.getElementById("subcategoryForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const catId = document.getElementById("sCategory").value;
     const input = document.getElementById("sName");
     if (!catId) return;
-    addSubcategory(catId, input.value.trim());
+    const btn = e.submitter;
+    btn.disabled = true;
+    await addSubcategory(catId, input.value.trim());
     input.value = "";
+    btn.disabled = false;
   });
 
   document.getElementById("subcategoryList").addEventListener("click", (e) => {
