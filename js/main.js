@@ -60,29 +60,53 @@ async function loadCatalog() {
   renderProducts();
 }
 
+// ============ LIVE SYNC (auto-refresh when admin panel changes data) ============
+let reloadTimer = null;
+function scheduleReload() {
+  clearTimeout(reloadTimer);
+  reloadTimer = setTimeout(loadCatalog, 600);
+}
+
+function setupLiveSync() {
+  sb.channel("catalog-sync")
+    .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, scheduleReload)
+    .on("postgres_changes", { event: "*", schema: "public", table: "subcategories" }, scheduleReload)
+    .on("postgres_changes", { event: "*", schema: "public", table: "products" }, scheduleReload)
+    .on("postgres_changes", { event: "*", schema: "public", table: "product_images" }, scheduleReload)
+    .on("postgres_changes", { event: "*", schema: "public", table: "product_subcategories" }, scheduleReload)
+    .subscribe();
+}
+
 // ============ FILTERS ============
 function renderFilters() {
+  if (activeCategory !== "all" && !CATEGORIES.some(c => c.id === activeCategory)) {
+    activeCategory = "all";
+  }
   const filters = document.getElementById("filters");
-  const buttons = [`<button class="filter-btn is-active" data-filter="all">ყველა</button>`]
-    .concat(CATEGORIES.map(c => `<button class="filter-btn" data-filter="${c.id}">${c.name}</button>`));
+  const buttons = [`<button class="filter-btn${activeCategory === "all" ? " is-active" : ""}" data-filter="all">ყველა</button>`]
+    .concat(CATEGORIES.map(c => `<button class="filter-btn${activeCategory === c.id ? " is-active" : ""}" data-filter="${c.id}">${c.name}</button>`));
   filters.innerHTML = buttons.join("");
   renderSubFilters();
 }
 
 function renderSubFilters() {
   const subFilters = document.getElementById("subFilters");
-  activeSubcategory = "all";
   if (activeCategory === "all") {
+    activeSubcategory = "all";
     subFilters.innerHTML = "";
     return;
   }
   const subs = SUBCATEGORIES.filter(s => s.category_id === activeCategory);
   if (!subs.length) {
+    activeSubcategory = "all";
     subFilters.innerHTML = "";
     return;
   }
-  const buttons = [`<button class="filter-btn is-active" data-subfilter="all">ყველა</button>`]
-    .concat(subs.map(s => `<button class="filter-btn" data-subfilter="${s.id}">${s.name}</button>`));
+  if (activeSubcategory !== "all" && !subs.some(s => s.id === activeSubcategory)) {
+    activeSubcategory = "all";
+  }
+  const buttons = [`<button class="filter-btn${activeSubcategory === "all" ? " is-active" : ""}" data-subfilter="all">ყველა</button>`]
+    .concat(subs.map(s => `<button class="filter-btn${activeSubcategory === s.id ? " is-active" : ""}" data-subfilter="${s.id}">${s.name}</button>`));
   subFilters.innerHTML = buttons.join("");
 }
 
@@ -90,19 +114,17 @@ function setupFilters() {
   document.getElementById("filters").addEventListener("click", (e) => {
     const btn = e.target.closest(".filter-btn");
     if (!btn) return;
-    document.querySelectorAll("#filters .filter-btn").forEach(b => b.classList.remove("is-active"));
-    btn.classList.add("is-active");
     activeCategory = btn.dataset.filter;
-    renderSubFilters();
+    activeSubcategory = "all";
+    renderFilters();
     renderProducts();
   });
 
   document.getElementById("subFilters").addEventListener("click", (e) => {
     const btn = e.target.closest(".filter-btn");
     if (!btn) return;
-    document.querySelectorAll("#subFilters .filter-btn").forEach(b => b.classList.remove("is-active"));
-    btn.classList.add("is-active");
     activeSubcategory = btn.dataset.subfilter;
+    renderSubFilters();
     renderProducts();
   });
 }
@@ -486,6 +508,7 @@ function setupBurger() {
 
 document.addEventListener("DOMContentLoaded", () => {
   loadCatalog();
+  setupLiveSync();
   setupFilters();
   setupCart();
   setupHeaderScroll();

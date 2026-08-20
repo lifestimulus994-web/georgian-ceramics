@@ -101,3 +101,11 @@ create policy "auth_update_product_images_storage" on storage.objects
 
 create policy "auth_delete_product_images_storage" on storage.objects
   for delete to authenticated using (bucket_id = 'product-images');
+
+-- ============ REALTIME ============
+-- Lets the public website auto-refresh the moment the admin panel changes data.
+alter publication supabase_realtime add table categories;
+alter publication supabase_realtime add table subcategories;
+alter publication supabase_realtime add table products;
+alter publication supabase_realtime add table product_images;
+alter publication supabase_realtime add table product_subcategories;
