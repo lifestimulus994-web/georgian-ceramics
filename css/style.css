@@ -51,26 +51,27 @@
 
 /* ============ TOKENS ============ */
 :root {
-  /* aged-paper (sticker) ramp */
-  --cream: #dcdab0;
-  --cream-soft: #eae7c8;
-  --sand: #bdb896;
-  --parchment-stain: #ccc9a6;
-  --parchment-deep: #a9a483;
-  /* red-sticker ramp, dark → bright */
-  --terracotta: #93343e;
-  --terracotta-rgb: 147, 52, 62;
-  --terracotta-dark: #7a2a34;
-  --terracotta-deep: #5c1f28;
-  --clay: #e07680;
-  --ink: #3a2a1c;
-  --ink-soft: #6b5744;
+  /* wine-label parchment ramp */
+  --cream: #d9d1a9;
+  --cream-soft: #d9d5a3;
+  --sand: #a6a486;
+  --parchment-stain: #cfc89a;
+  --parchment-deep: #b3ae87;
+  /* burgundy-label ramp, dark → bright */
+  --terracotta: #8c3746;
+  --terracotta-rgb: 140, 55, 70;
+  --terracotta-dark: #6f2c37;
+  --terracotta-deep: #4f2029;
+  --clay: #d19aa2;
+  --ink: #402630;
+  --ink-rgb: 64, 38, 48;
+  --ink-soft: #684249;
   --white: #ffffff;
   --wa-green: #25d366;
   --wa-green-dark: #1fb355;
   --radius: 18px;
   --radius-sm: 12px;
-  --shadow: 0 20px 45px -25px rgba(58, 42, 28, 0.45);
+  --shadow: 0 20px 45px -25px rgba(64, 38, 48, 0.45);
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -86,12 +87,12 @@ body {
   margin: 0;
   background-color: var(--cream);
   background-image:
-    radial-gradient(ellipse 340px 260px at 12% 8%, rgba(204, 201, 166, 0.55) 0%, transparent 65%),
-    radial-gradient(ellipse 260px 300px at 78% 22%, rgba(169, 164, 131, 0.4) 0%, transparent 60%),
-    radial-gradient(ellipse 300px 240px at 45% 55%, rgba(234, 231, 200, 0.6) 0%, transparent 60%),
-    radial-gradient(ellipse 280px 320px at 88% 78%, rgba(204, 201, 166, 0.45) 0%, transparent 65%),
-    radial-gradient(ellipse 220px 260px at 20% 90%, rgba(169, 164, 131, 0.35) 0%, transparent 60%),
-    radial-gradient(ellipse 260px 220px at 55% 15%, rgba(204, 201, 166, 0.3) 0%, transparent 55%);
+    radial-gradient(ellipse 340px 260px at 12% 8%, rgba(217, 213, 163, 0.55) 0%, transparent 65%),
+    radial-gradient(ellipse 260px 300px at 78% 22%, rgba(166, 164, 134, 0.4) 0%, transparent 60%),
+    radial-gradient(ellipse 300px 240px at 45% 55%, rgba(217, 213, 163, 0.6) 0%, transparent 60%),
+    radial-gradient(ellipse 280px 320px at 88% 78%, rgba(217, 213, 163, 0.45) 0%, transparent 65%),
+    radial-gradient(ellipse 220px 260px at 20% 90%, rgba(166, 164, 134, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 260px 220px at 55% 15%, rgba(217, 213, 163, 0.3) 0%, transparent 55%);
   background-repeat: repeat;
   background-size: 620px 620px, 540px 540px, 480px 480px, 700px 700px, 460px 460px, 560px 560px;
   color: var(--ink);
@@ -176,7 +177,7 @@ button {
 .btn-ghost {
   background: rgba(255, 255, 255, 0.12);
   color: var(--cream-soft);
-  border: 1.5px solid rgba(246, 236, 223, 0.5);
+  border: 1.5px solid rgba(217, 213, 163, 0.5);
   backdrop-filter: none;
 }
 .btn-ghost:hover {
@@ -227,15 +228,15 @@ button {
   transform: translateY(-100%);
 }
 .site-header.is-scrolled {
-  background: rgba(234, 231, 200, 0.92);
-  box-shadow: 0 8px 30px -18px rgba(58, 42, 28, 0.4);
+  background: rgba(217, 213, 163, 0.92);
+  box-shadow: 0 8px 30px -18px rgba(64, 38, 48, 0.4);
 }
 .site-header::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(180deg, rgba(20, 14, 9, 0.55) 0%, rgba(20, 14, 9, 0.28) 55%, rgba(20, 14, 9, 0) 100%);
+  background: linear-gradient(180deg, rgba(30, 16, 21, 0.55) 0%, rgba(30, 16, 21, 0.28) 55%, rgba(30, 16, 21, 0) 100%);
   opacity: 1;
   transition: opacity 0.4s var(--ease);
 }
@@ -263,7 +264,7 @@ button {
   height: 44px;
   width: 44px;
   border-radius: 50%;
-  background: rgba(234, 231, 200, 0.92);
+  background: rgba(217, 213, 163, 0.92);
   box-shadow: 0 4px 14px -6px rgba(0, 0, 0, 0.35);
   flex-shrink: 0;
 }
@@ -304,7 +305,7 @@ button {
 .main-nav a {
   font-size: 0.93rem;
   font-weight: 500;
-  color: rgba(246, 236, 223, 0.92);
+  color: rgba(217, 213, 163, 0.92);
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
   transition: color 0.3s var(--ease), text-shadow 0.3s var(--ease);
   position: relative;
@@ -332,14 +333,14 @@ button {
   height: 42px;
   width: 42px;
   border-radius: 50%;
-  background: rgba(246, 236, 223, 0.14);
-  border: 1.5px solid rgba(246, 236, 223, 0.5);
+  background: rgba(217, 213, 163, 0.14);
+  border: 1.5px solid rgba(217, 213, 163, 0.5);
   color: var(--cream-soft);
   transition: background-color 0.3s var(--ease), border-color 0.3s var(--ease), color 0.3s var(--ease), transform 0.3s var(--ease);
 }
 .cart-btn:hover {
   transform: translateY(-2px);
-  background: rgba(246, 236, 223, 0.24);
+  background: rgba(217, 213, 163, 0.24);
 }
 .cart-btn .ico {
   width: 19px;
@@ -429,8 +430,8 @@ button {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(58, 42, 28, 0.55) 0%, rgba(58, 42, 28, 0.55) 100%),
-    linear-gradient(100deg, rgba(20, 14, 9, 0.88) 20%, rgba(58, 42, 28, 0.45) 60%, rgba(58, 42, 28, 0.25) 100%);
+    linear-gradient(180deg, rgba(64, 38, 48, 0.55) 0%, rgba(64, 38, 48, 0.55) 100%),
+    linear-gradient(100deg, rgba(30, 16, 21, 0.88) 20%, rgba(64, 38, 48, 0.45) 60%, rgba(64, 38, 48, 0.25) 100%);
 }
 .hero-inner {
   position: relative;
@@ -445,8 +446,8 @@ button {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--clay);
-  background: rgba(246, 236, 223, 0.1);
-  border: 1px solid rgba(246, 236, 223, 0.35);
+  background: rgba(217, 213, 163, 0.1);
+  border: 1px solid rgba(217, 213, 163, 0.35);
   padding: 7px 16px;
   border-radius: 999px;
   margin-bottom: 22px;
@@ -459,7 +460,7 @@ button {
 }
 .hero-lead {
   font-size: clamp(1rem, 1.6vw, 1.15rem);
-  color: rgba(246, 236, 223, 0.88);
+  color: rgba(217, 213, 163, 0.88);
   max-width: 520px;
   margin-bottom: 34px;
 }
@@ -485,7 +486,7 @@ button {
 }
 .stat span {
   font-size: 0.8rem;
-  color: rgba(246, 236, 223, 0.7);
+  color: rgba(217, 213, 163, 0.7);
 }
 .scroll-cue {
   position: absolute;
@@ -494,7 +495,7 @@ button {
   transform: translateX(-50%);
   width: 26px;
   height: 42px;
-  border: 2px solid rgba(246, 236, 223, 0.6);
+  border: 2px solid rgba(217, 213, 163, 0.6);
   border-radius: 999px;
   z-index: 1;
 }
@@ -528,7 +529,7 @@ button {
   margin-bottom: 16px;
 }
 .section-tag-light {
-  background: rgba(246, 236, 223, 0.15);
+  background: rgba(217, 213, 163, 0.15);
   color: var(--clay);
 }
 .section-head {
@@ -749,7 +750,7 @@ button {
   position: absolute;
   top: 12px;
   left: 12px;
-  background: rgba(58, 42, 28, 0.78);
+  background: rgba(64, 38, 48, 0.78);
   color: var(--cream-soft);
   font-size: 0.72rem;
   font-weight: 600;
@@ -806,7 +807,7 @@ button {
   margin-bottom: 18px;
 }
 .giftbox-text p {
-  color: rgba(246, 236, 223, 0.8);
+  color: rgba(217, 213, 163, 0.8);
   margin-bottom: 30px;
   font-size: 1.02rem;
 }
@@ -968,7 +969,7 @@ button {
 .cart-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(20, 14, 9, 0.5);
+  background: rgba(30, 16, 21, 0.5);
   z-index: 200;
   opacity: 0;
   pointer-events: none;
@@ -990,7 +991,7 @@ button {
   flex-direction: column;
   transform: translateX(100%);
   transition: transform 0.45s var(--ease);
-  box-shadow: -24px 0 60px -20px rgba(58, 42, 28, 0.4);
+  box-shadow: -24px 0 60px -20px rgba(64, 38, 48, 0.4);
 }
 .cart-drawer.is-open {
   transform: translateX(0);
@@ -1208,7 +1209,7 @@ button {
     padding: 40px;
     transform: translateX(100%);
     transition: transform 0.45s var(--ease);
-    box-shadow: -20px 0 50px -20px rgba(58, 42, 28, 0.35);
+    box-shadow: -20px 0 50px -20px rgba(64, 38, 48, 0.35);
   }
   .main-nav.is-open {
     transform: translateX(0);
