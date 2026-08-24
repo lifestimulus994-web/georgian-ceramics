@@ -263,15 +263,13 @@ button {
   justify-content: center;
   height: 44px;
   width: 44px;
-  border-radius: 50%;
-  background: rgba(217, 213, 163, 0.92);
-  box-shadow: 0 4px 14px -6px rgba(0, 0, 0, 0.35);
   flex-shrink: 0;
 }
 .brand-logo {
-  height: 34px;
-  width: 34px;
+  height: 44px;
+  width: 44px;
   object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
 }
 .brand-text {
   display: flex;
